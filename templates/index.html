@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flight Concierge</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header-inner">
+        <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 2L11 13" /><path d="M22 2L15 22L11 13L2 9L22 2Z" />
+        </svg>
+        <h1>Flight Concierge</h1>
+      </div>
+    </header>
+
+    <main class="chat-area" id="chatArea">
+      <div class="welcome">
+        <p class="welcome-title">Where would you like to fly?</p>
+        <p class="welcome-subtitle">Tell me your departure city, destination, and travel dates and I'll find the best flights for you.</p>
+      </div>
+    </main>
+
+    <div class="feedback-bar" id="feedbackBar">
+      <p class="feedback-prompt" id="feedbackPrompt"></p>
+      <div class="feedback-actions">
+        <textarea class="feedback-input" id="feedbackInput" rows="2" placeholder="Add details or just approve..."></textarea>
+        <div class="feedback-buttons">
+          <button class="btn btn-approve" id="btnApprove">Approve</button>
+          <button class="btn btn-change" id="btnChange">Request Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <form class="input-bar" id="inputForm">
+      <input
+        type="text"
+        class="message-input"
+        id="messageInput"
+        placeholder="e.g. I want to fly from New York to London in 3 days..."
+        autocomplete="off"
+      />
+      <button type="submit" class="btn btn-send" id="btnSend">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+          <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
+        </svg>
+      </button>
+    </form>
+  </div>
+
+  <div class="warmup-overlay" id="warmupOverlay">
+    <div class="warmup-spinner"></div>
+  </div>
+
+  <div class="modal-overlay" id="errorModal">
+    <div class="modal">
+      <svg class="modal-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+        <path d="M12 8v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="12" cy="16" r="1" fill="currentColor"/>
+      </svg>
+      <p class="modal-text" id="errorModalText"></p>
+      <button class="btn btn-modal-dismiss" id="errorModalBtn">Try Again</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+  <script src="/static/js/chat.js?v=5"></script>
+</body>
+</html>
