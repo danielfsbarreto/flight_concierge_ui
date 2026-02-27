@@ -2,6 +2,8 @@
 
 A lightweight chat interface for a CrewAI Enterprise-powered flight booking agent. Built with Flask, it uses **Server-Sent Events (SSE)** for real-time streaming and **webhooks** to receive updates from CrewAI Enterprise automations.
 
+> **Backend automation:** This UI is designed to work with the [crewAIInc/template_flight_concierge](https://github.com/crewAIInc/template_flight_concierge) CrewAI Enterprise deployment.
+
 ![Flight Concierge App](screenshot.png)
 
 ## Architecture
