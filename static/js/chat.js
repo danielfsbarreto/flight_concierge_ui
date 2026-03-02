@@ -18,6 +18,7 @@
   let lastStatus = null;
   let animating = 0;
   let lastKeepProcessing = false;
+  let conversationEnded = false;
   const deferredActions = [];
 
   // ── Helpers ────────────────────────────────
@@ -153,6 +154,7 @@
   }
 
   function setInputEnabled(enabled) {
+    if (conversationEnded) enabled = false;
     messageInput.disabled = !enabled;
     btnSend.disabled = !enabled;
   }
@@ -265,6 +267,7 @@
         runAfterAnimations(() => {
           hideTyping();
           stopStream();
+          conversationEnded = true;
           const divider = document.createElement("div");
           divider.className = "conversation-end";
           divider.textContent = "This conversation is over";
