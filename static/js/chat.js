@@ -136,8 +136,8 @@
 
   function showTyping() {
     if (animating > 0) return;
-    if (chatArea.querySelector(".typing")) return;
     setInputEnabled(false);
+    if (chatArea.querySelector(".typing")) return;
     const el = document.createElement("div");
     el.className = "typing";
     el.innerHTML = "<span></span><span></span><span></span>";
@@ -169,8 +169,10 @@
 
   function hideFeedback() {
     feedbackBar.classList.remove("visible");
-    setInputEnabled(true);
-    messageInput.focus();
+    if (animating === 0 && !chatArea.querySelector(".typing")) {
+      setInputEnabled(true);
+      messageInput.focus();
+    }
   }
 
   // ── Error modal ─────────────────────────────
