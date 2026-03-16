@@ -213,19 +213,10 @@ def api_feedback(flow_id: str):
 def webhook_messages():
     """Receive individual message events from the DispatcherEventBusService."""
     payload = request.get_json(force=True)
-    app.logger.info(
-        "Message webhook raw payload: %s", json.dumps(payload, default=str)[:2000]
-    )
+    app.logger.info("Message webhook: payload=%.200s", json.dumps(payload, default=str))
 
     result = payload.get("result") or {}
     message_data = result.get("message") if isinstance(result, dict) else None
-    app.logger.info(
-        "Message webhook parsed: message=%.50s keep_processing=%s",
-        message_data
-        if isinstance(message_data, str)
-        else (message_data or {}).get("content", ""),
-        result.get("keep_processing") if isinstance(result, dict) else None,
-    )
 
     flow_id = (
         payload.get("source_fingerprint")
@@ -234,11 +225,6 @@ def webhook_messages():
     )
 
     if not flow_id or not message_data:
-        app.logger.warning(
-            "Message webhook: could not extract flow_id=%s message_data=%s",
-            flow_id,
-            message_data,
-        )
         return jsonify({"ok": True, "skipped": True})
 
     if isinstance(message_data, str):
@@ -256,21 +242,18 @@ def webhook_messages():
 
     session = _get_or_create_session(flow_id)
     with sessions_lock:
+        if session["status"] == "waiting_for_feedback":
+            app.logger.info(
+                "Message webhook: flow=%s skipped (waiting_for_feedback)", flow_id
+            )
+            return jsonify({"ok": True, "skipped": True})
+
         session["messages"].append({"role": role, "content": content})
         session["keep_processing"] = keep_processing
         if end_of_conversation:
             session["end_of_conversation"] = True
 
     _notify_sse_clients(flow_id)
-
-    app.logger.info(
-        "Message webhook: flow=%s role=%s content=%.50s keep_processing=%s end_of_conversation=%s",
-        flow_id,
-        role,
-        content,
-        keep_processing,
-        end_of_conversation,
-    )
     return jsonify({"ok": True})
 
 
@@ -278,6 +261,9 @@ def webhook_messages():
 def webhook_feedback():
     """Receive human feedback requests from CrewAI Enterprise automation."""
     payload = request.get_json(force=True)
+    app.logger.info(
+        "Feedback webhook: payload=%.200s", json.dumps(payload, default=str)
+    )
 
     flow_id = payload.get("flow_id", "")
     if not flow_id:
@@ -304,8 +290,6 @@ def webhook_feedback():
         }
 
     _notify_sse_clients(flow_id)
-
-    app.logger.info("Feedback webhook: flow=%s emit=%s", flow_id, emit_options)
     return jsonify({"ok": True})
 
 

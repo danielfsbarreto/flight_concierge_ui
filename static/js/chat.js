@@ -93,7 +93,9 @@
         animating--;
         if (animating === 0) {
           flushDeferred();
-          if (lastKeepProcessing) {
+          if (isFeedbackVisible()) {
+            // Feedback bar took over — don't show typing or re-enable input
+          } else if (lastKeepProcessing) {
             showTyping();
           } else {
             setInputEnabled(true);
@@ -145,11 +147,15 @@
     scrollToBottom();
   }
 
+  function isFeedbackVisible() {
+    return feedbackBar.classList.contains("visible");
+  }
+
   function hideTyping() {
     const el = chatArea.querySelector(".typing");
     if (el) {
       el.remove();
-      if (animating === 0) setInputEnabled(true);
+      if (animating === 0 && !isFeedbackVisible()) setInputEnabled(true);
     }
   }
 
@@ -259,7 +265,9 @@
       }
 
       lastKeepProcessing = !!data.keep_processing;
-      if (lastKeepProcessing) {
+      if (data.status === "waiting_for_feedback") {
+        hideTyping();
+      } else if (lastKeepProcessing) {
         showTyping();
       } else {
         hideTyping();
