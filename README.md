@@ -46,7 +46,7 @@ The frontend opens a persistent `EventSource` connection to `/api/stream/<flow_i
 ```bash
 cp .env.example .env
 # Fill in CREWAI_ENTERPRISE_URL and CREWAI_ENTERPRISE_TOKEN
-uv run flask run -p 5001
+bin/start
 ```
 
 **Environment variables:**

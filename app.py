@@ -13,8 +13,19 @@ load_dotenv()
 app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
 
+
+@app.after_request
+def _add_cors(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+    return response
+
+
 CREWAI_ENTERPRISE_URL = os.environ["CREWAI_ENTERPRISE_URL"]
 CREWAI_ENTERPRISE_TOKEN = os.environ["CREWAI_ENTERPRISE_TOKEN"]
+DISPATCHER_URL = os.environ["DISPATCHER_URL"]
+DISPATCHER_KEY = os.environ["DISPATCHER_KEY"]
 
 sessions: dict[str, dict] = {}
 sessions_lock = Lock()
@@ -89,7 +100,21 @@ def api_start():
     kickoff_payload = {
         "inputs": {
             "message": {"role": "user", "content": user_content},
-        }
+        },
+        # "webhooks": {
+        #     "events": [
+        #         "flow_started",
+        #         "flow_finished",
+        #         "method_execution_started",
+        #         "method_execution_finished",
+        #     ],
+        #     "realtime": True,
+        #     "url": DISPATCHER_URL,
+        #     "authentication": {
+        #         "strategy": "bearer",
+        #         "token": DISPATCHER_KEY,
+        #     },
+        # },
     }
 
     try:
@@ -298,4 +323,4 @@ def webhook_feedback():
 # ──────────────────────────────────────────────
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    app.run(debug=True, port=int(os.environ.get("PORT", 5005)))

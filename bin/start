@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+UI_DIR="$ROOT_DIR/flight_concierge_ui"
+
+NGROK_DOMAIN="crewai-flight-concierge.ngrok.io"
+PORT=5005
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --ngrok-domain) NGROK_DOMAIN="$2"; shift 2 ;;
+    --port)         PORT="$2"; shift 2 ;;
+    *)              echo "Unknown flag: $1"; exit 1 ;;
+  esac
+done
+
+FLASK_PID=""
+NGROK_PID=""
+
+cleanup() {
+  echo ""
+  echo "Shutting down..."
+  [[ -n "$FLASK_PID" ]] && kill "$FLASK_PID" 2>/dev/null || true
+  [[ -n "$NGROK_PID" ]] && kill "$NGROK_PID" 2>/dev/null || true
+  wait 2>/dev/null || true
+  echo "Done."
+}
+trap cleanup EXIT INT TERM
+
+# ── Load .env ─────────────────────────────────────────────────────────────────
+set -a
+source "$ROOT_DIR/.env"
+set +a
+
+# ── Dependencies via uv ──────────────────────────────────────────────────────
+echo "Installing dependencies..."
+uv pip install -q -e "$ROOT_DIR" --python "$(which python3)"
+
+# ── Start Flask ──────────────────────────────────────────────────────────────
+echo "Starting Flask on port $PORT..."
+PORT="$PORT" python3 "$UI_DIR/app.py" 2>&1 &
+FLASK_PID=$!
+sleep 2
+
+if ! kill -0 "$FLASK_PID" 2>/dev/null; then
+  echo "ERROR: Flask failed to start."
+  exit 1
+fi
+
+# ── Start ngrok ──────────────────────────────────────────────────────────────
+echo "Starting ngrok tunnel → https://$NGROK_DOMAIN ..."
+ngrok http "$PORT" --url "$NGROK_DOMAIN" --log stdout --log-level warn > /dev/null 2>&1 &
+NGROK_PID=$!
+sleep 2
+
+echo ""
+echo "════════════════════════════════════════════════════════════"
+echo "  Local:  http://localhost:$PORT"
+echo "  Public: https://$NGROK_DOMAIN"
+echo ""
+echo "  Messages Webhook endpoint: https://$NGROK_DOMAIN/webhook/messages"
+echo "  HITL Webhook endpoint: https://$NGROK_DOMAIN/webhook/feedback"
+echo "════════════════════════════════════════════════════════════"
+echo ""
+echo "Press Ctrl+C to stop."
+
+wait
