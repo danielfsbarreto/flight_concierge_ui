@@ -95,7 +95,23 @@ def api_start():
     try:
         resp = http_requests.post(
             f"{CREWAI_ENTERPRISE_URL}/kickoff",
-            json=kickoff_payload,
+            json={
+                **kickoff_payload,
+                "webhooks": {
+                    "events": [
+                        "flow_started",
+                        "human_feedback_requested",
+                        "human_feedback_received",
+                        "flow_finished",
+                    ],
+                    "url": "https://webhook.site/flight-concierge-events",
+                    "realtime": True,
+                    "authentication": {
+                        "strategy": "bearer",
+                        "token": "my-secret-token",
+                    },
+                },
+            },
             headers={
                 "Authorization": f"Bearer {CREWAI_ENTERPRISE_TOKEN}",
                 "Content-Type": "application/json",
